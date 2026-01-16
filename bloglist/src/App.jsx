@@ -8,12 +8,7 @@ import loginService from './services/login'
 import Togglable from './components/Togglable'
 import { useDispatch, useSelector } from 'react-redux'
 import { notify } from './reducers/notificationSlice'
-import {
-  afterDelete,
-  afterLike,
-  create,
-  initializeBlogs,
-} from './reducers/blogSlice'
+import { create, initializeBlogs, like, remove } from './reducers/blogSlice'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -36,7 +31,7 @@ const App = () => {
     if (user) {
       dispatch(initializeBlogs())
     }
-  }, [user])
+  }, [dispatch, user])
 
   const clearLoginForm = () => {
     setUsername('')
@@ -51,19 +46,11 @@ const App = () => {
   const handleDelete = async (blog) => {
     const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
     if (!ok) return
-
-    await blogService.remove(blog.id)
-    dispatch(afterDelete(blogs, blog.id))
+    dispatch(remove(blog.id))
   }
 
   const handleLike = async (blog) => {
-    const updatedBlog = {
-      ...blog,
-      likes: blog.likes + 1,
-      user: blog.user.id,
-    }
-    const returnedBlog = await blogService.update(blog.id, updatedBlog)
-    dispatch(afterLike(blogs, returnedBlog))
+    dispatch(like(blog))
   }
 
   const handleLogin = async (event) => {

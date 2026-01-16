@@ -9,53 +9,56 @@ const blogSlice = createSlice({
     createBlog(state, action) {
       state.push(action.payload)
     },
+    likeBlog(state, action) {
+      return state.map((b) => (b.id === action.payload.id ? action.payload : b))
+    },
+    removeBlog(state, action) {
+      return state.filter((b) => b.id !== action.payload)
+    },
     setBlogs(state, action) {
       return action.payload
     },
   },
 })
 
-export const afterDelete = (blogs, id) => {
-  return async (dispatch) => {
-    dispatch(setBlogs(blogs.filter((b) => b.id !== id)))
-  }
-}
-
-export const afterLike = (blogs, likedBlog) => {
-  return async (dispatch) => {
+export const create = (blog) => async (dispatch) => {
+  try {
+    const createdBlog = await blogService.create(blog)
+    dispatch(createBlog(createdBlog))
     dispatch(
-      setBlogs(blogs.map((b) => (b.id === likedBlog.id ? likedBlog : b)))
+      notify({
+        type: 'success',
+        message: `a new blog "${createdBlog.title}" by ${createdBlog.author} added`,
+      })
     )
+  } catch (error) {
+    dispatch(notify({ type: 'error', message: error.response.data.error }))
   }
 }
 
-export const create = (blog) => {
-  return async (dispatch) => {
-    try {
-      const createdBlog = await blogService.create(blog)
-      dispatch(createBlog(createdBlog))
-      dispatch(
-        notify({
-          type: 'success',
-          message: `a new blog "${createdBlog.title}" by ${createdBlog.author} added`,
-        })
-      )
-    } catch (error) {
-      dispatch(notify({ type: 'error', message: error.response.data.error }))
-    }
+export const initializeBlogs = () => async (dispatch) => {
+  try {
+    const blogs = await blogService.getAll()
+    dispatch(setBlogs(blogs))
+  } catch {
+    dispatch(notify({ type: 'error', message: 'failed to fetch blogs' }))
   }
 }
 
-export const initializeBlogs = () => {
-  return async (dispatch) => {
-    try {
-      const blogs = await blogService.getAll()
-      dispatch(setBlogs(blogs))
-    } catch {
-      dispatch(notify({ type: 'error', message: 'failed to fetch blogs' }))
-    }
+export const like = (blog) => async (dispatch) => {
+  const likedBlog = {
+    ...blog,
+    likes: blog.likes + 1,
+    user: blog.user.id,
   }
+  const updatedBlog = await blogService.update(blog.id, likedBlog)
+  dispatch(likeBlog(updatedBlog))
 }
 
-export const { createBlog, setBlogs } = blogSlice.actions
+export const remove = (id) => async (dispatch) => {
+  await blogService.remove(id)
+  dispatch(removeBlog(id))
+}
+
+export const { createBlog, likeBlog, removeBlog, setBlogs } = blogSlice.actions
 export default blogSlice.reducer
