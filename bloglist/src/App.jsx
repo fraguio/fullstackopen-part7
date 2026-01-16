@@ -6,15 +6,19 @@ import blogService from './services/blogs'
 import LoginForm from './components/LoginForm'
 import loginService from './services/login'
 import Togglable from './components/Togglable'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { notify } from './reducers/notificationSlice'
+import {
+  afterDelete,
+  afterLike,
+  create,
+  initializeBlogs,
+} from './reducers/blogSlice'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const dispatch = useDispatch()
 
   const blogFormRef = useRef()
 
@@ -27,21 +31,10 @@ const App = () => {
     }
   }, [])
 
+  const dispatch = useDispatch()
   useEffect(() => {
-    // Define y llama a una función asíncrona dentro del callback.
-    // useEffect no puede ser async
-    const fetchBlogs = async () => {
-      try {
-        // Uso de await dentro de la función asíncrona
-        const blogs = await blogService.getAll()
-        setBlogs(blogs)
-      } catch (error) {
-        showNotification('error', `failed to fetch blogs ${error}`)
-      }
-    }
-
     if (user) {
-      fetchBlogs()
+      dispatch(initializeBlogs())
     }
   }, [user])
 
@@ -51,19 +44,8 @@ const App = () => {
   }
 
   const handleBlogFormSubmit = async (newBlog) => {
-    try {
-      const createdBlog = await blogService.create(newBlog)
-      setBlogs(blogs.concat(createdBlog))
-
-      blogFormRef.current.toggleVisibility()
-
-      showNotification(
-        'success',
-        `a new blog "${createdBlog.title}" by ${createdBlog.author} added`
-      )
-    } catch (error) {
-      showNotification('error', error.response.data.error)
-    }
+    dispatch(create(newBlog))
+    blogFormRef.current.toggleVisibility()
   }
 
   const handleDelete = async (blog) => {
@@ -71,7 +53,7 @@ const App = () => {
     if (!ok) return
 
     await blogService.remove(blog.id)
-    setBlogs((blogs) => blogs.filter((b) => b.id !== blog.id))
+    dispatch(afterDelete(blogs, blog.id))
   }
 
   const handleLike = async (blog) => {
@@ -80,10 +62,8 @@ const App = () => {
       likes: blog.likes + 1,
       user: blog.user.id,
     }
-
     const returnedBlog = await blogService.update(blog.id, updatedBlog)
-
-    setBlogs((blogs) => blogs.map((b) => (b.id === blog.id ? returnedBlog : b)))
+    dispatch(afterLike(blogs, returnedBlog))
   }
 
   const handleLogin = async (event) => {
@@ -109,6 +89,8 @@ const App = () => {
   const showNotification = (type, message) => {
     dispatch(notify({ type, message }, 5))
   }
+
+  const blogs = useSelector((state) => state.blog)
 
   return (
     <div>
