@@ -6,13 +6,15 @@ import blogService from './services/blogs'
 import LoginForm from './components/LoginForm'
 import loginService from './services/login'
 import Togglable from './components/Togglable'
+import { useDispatch } from 'react-redux'
+import { notify } from './reducers/notificationSlice'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const [notification, setNotification] = useState(null)
+  const dispatch = useDispatch()
 
   const blogFormRef = useRef()
 
@@ -81,9 +83,7 @@ const App = () => {
 
     const returnedBlog = await blogService.update(blog.id, updatedBlog)
 
-    setBlogs((blogs) =>
-      blogs.map((b) => (b.id === blog.id ? returnedBlog : b))
-    )
+    setBlogs((blogs) => blogs.map((b) => (b.id === blog.id ? returnedBlog : b)))
   }
 
   const handleLogin = async (event) => {
@@ -107,8 +107,7 @@ const App = () => {
   }
 
   const showNotification = (type, message) => {
-    setNotification({ type, message })
-    setTimeout(() => setNotification(null), 3000)
+    dispatch(notify({ type, message }, 5))
   }
 
   return (
@@ -116,7 +115,7 @@ const App = () => {
       {!user && (
         <div>
           <h2>log in to application</h2>
-          <Notification notification={notification} />
+          <Notification />
           <LoginForm
             handleLogin={handleLogin}
             username={username}
@@ -130,7 +129,7 @@ const App = () => {
       {user && (
         <div>
           <h2>blogs</h2>
-          <Notification notification={notification} />
+          <Notification />
 
           <p>
             {user.username} logged in{' '}
@@ -150,7 +149,7 @@ const App = () => {
                     key={blog.id}
                     user={user}
                     blog={blog}
-                    handleDelete = {handleDelete}
+                    handleDelete={handleDelete}
                     handleLike={handleLike}
                   />
                 )
