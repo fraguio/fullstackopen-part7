@@ -2,41 +2,31 @@ import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
 import BlogForm from './components/BlogForm'
-import blogService from './services/blogs'
 import LoginForm from './components/LoginForm'
-import loginService from './services/login'
+
 import Togglable from './components/Togglable'
 import { useDispatch, useSelector } from 'react-redux'
-import { notify } from './reducers/notificationSlice'
+
 import { create, initializeBlogs, like, remove } from './reducers/blogSlice'
+import { initializeUser, login, logout } from './reducers/userSlice'
 
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
-
-  const blogFormRef = useRef()
-
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setUser(user)
-      blogService.setToken(user.token)
-    }
-  }, [])
 
   const dispatch = useDispatch()
+  const blogFormRef = useRef()
+  const user = useSelector((state) => state.user)
+
+  useEffect(() => {
+    dispatch(initializeUser())
+  }, [dispatch])
+
   useEffect(() => {
     if (user) {
       dispatch(initializeBlogs())
     }
   }, [dispatch, user])
-
-  const clearLoginForm = () => {
-    setUsername('')
-    setPassword('')
-  }
 
   const handleBlogFormSubmit = async (newBlog) => {
     dispatch(create(newBlog))
@@ -55,26 +45,13 @@ const App = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault()
-
-    try {
-      const user = await loginService.login({ username, password })
-      window.localStorage.setItem('loggedBlogAppUser', JSON.stringify(user))
-      blogService.setToken(user.token)
-      setUser(user)
-      clearLoginForm()
-    } catch (error) {
-      showNotification('error', error.response.data.error)
-      clearLoginForm()
-    }
+    dispatch(login(username, password))
+    setUsername('')
+    setPassword('')
   }
 
   const handleLogout = () => {
-    window.localStorage.removeItem('loggedBlogAppUser')
-    setUser(null)
-  }
-
-  const showNotification = (type, message) => {
-    dispatch(notify({ type, message }, 5))
+    dispatch(logout())
   }
 
   const blogs = useSelector((state) => state.blog)
