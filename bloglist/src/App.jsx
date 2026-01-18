@@ -6,8 +6,8 @@ import LoginForm from './components/LoginForm'
 
 import Togglable from './components/Togglable'
 import { useDispatch, useSelector } from 'react-redux'
+import { useQuery } from '@tanstack/react-query'
 
-import { create, initializeBlogs, like, remove } from './reducers/blogSlice'
 import { initializeUser, login, logout } from './reducers/userSlice'
 
 const App = () => {
@@ -22,11 +22,11 @@ const App = () => {
     dispatch(initializeUser())
   }, [dispatch])
 
-  useEffect(() => {
-    if (user) {
-      dispatch(initializeBlogs())
-    }
-  }, [dispatch, user])
+  // useEffect(() => {
+  //   if (user) {
+  //     dispatch(initializeBlogs())
+  //   }
+  // }, [dispatch, user])
 
   const handleBlogFormSubmit = async (newBlog) => {
     dispatch(create(newBlog))
@@ -54,7 +54,24 @@ const App = () => {
     dispatch(logout())
   }
 
-  const blogs = useSelector((state) => state.blog)
+  const result = useQuery({
+    queryKey: ['blogs'],
+    queryFn: async () => {
+      const response = await fetch('http://localhost:3003/api/blogs')
+      if (!response.ok) {
+        throw new Error('Failed to fetch notes')
+      }
+      return await response.json()
+    },
+  })
+
+  console.log(JSON.parse(JSON.stringify(result)))
+
+  if (result.isLoading) {
+    return <div>loading data...</div>
+  }
+
+  const blogs = result.data
 
   return (
     <div>

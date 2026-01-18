@@ -6,9 +6,8 @@ import userSlice from './reducers/userSlice'
 
 const store = configureStore({
   reducer: {
-    blog: blogSlice,
     notification: notificationSlice,
-    user: userSlice
+    user: userSlice,
   },
 })
 
