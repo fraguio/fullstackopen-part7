@@ -1,4 +1,5 @@
-import { useContext, useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
+
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
@@ -7,11 +8,13 @@ import LoginForm from './components/LoginForm'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import NotificationContext from './NotificationContext'
-import { Routes, Route, Link, useMatch, useNavigate } from 'react-router-dom'
+import { Routes, Route, useMatch } from 'react-router-dom'
 import Togglable from './components/Togglable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import User from './components/User'
 import UserContext from './UserContext'
 import userService from './services/users'
+import UserView from './components/UserView'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -24,25 +27,32 @@ const App = () => {
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      userDispatch({
-        type: 'LOGIN',
-        payload: user,
-      })
-      blogService.setToken(user.token)
-    }
-  }, [])
+    if (!loggedUserJSON) return
+
+    const user = JSON.parse(loggedUserJSON)
+    blogService.setToken(user.token)
+    userDispatch({ type: 'LOGIN', payload: user })
+  }, [userDispatch])
 
   const resultBlogs = useQuery({
     queryKey: ['blogs'],
     queryFn: blogService.getAll,
+    enabled: !!user,
   })
 
   const resultUsers = useQuery({
     queryKey: ['users'],
     queryFn: userService.getAll,
+    enabled: !!user,
   })
+
+  const blogs = resultBlogs.data || []
+  const users = resultUsers.data || []
+
+  const match = useMatch('/users/:id')
+  const selectedUser = match
+    ? users.find((u) => u.id === match.params.id)
+    : null
 
   const queryClient = useQueryClient()
 
@@ -113,6 +123,7 @@ const App = () => {
         type: 'LOGIN',
         payload: user,
       })
+
       clearLoginForm()
     } catch (error) {
       showNotification('error', error.response.data.error)
@@ -122,6 +133,10 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
+    // Anular el token del usuario
+    blogService.setToken(null)
+    // Limpiar el estado cacheado por React Query
+    queryClient.clear()
     userDispatch({
       type: 'LOGOUT',
     })
@@ -144,12 +159,9 @@ const App = () => {
     )
   }
 
-  if (resultBlogs.isLoading || resultUsers.isLoading) {
+  if (user && (resultBlogs.isLoading || resultUsers.isLoading)) {
     return <div>loading data...</div>
   }
-
-  const blogs = resultBlogs.data || []
-  const users = resultUsers.data || []
 
   return (
     <div>
@@ -174,12 +186,12 @@ const App = () => {
             <Route
               path="/"
               element={
-                <>
+                <React.Fragment>
                   <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
                     <BlogForm createBlog={handleBlogFormSubmit} />
                   </Togglable>
                   <div>
-                    {[...blogs]
+                    {blogs
                       .sort((a, b) => b.likes - a.likes)
                       .map((blog) => {
                         return (
@@ -193,7 +205,7 @@ const App = () => {
                         )
                       })}
                   </div>
-                </>
+                </React.Fragment>
               }
             />
             <Route
@@ -211,18 +223,19 @@ const App = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {[...users].map((user) => (
+                      {users.map((user) => (
                         <tr key={user.id}>
-                          <td>{user.name}</td>
-                          <td style={{ paddingLeft: '20px' }}>
-                            {user.blogs.length}
-                          </td>
+                          <User user={user} />
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               }
+            />
+            <Route
+              path="/users/:id"
+              element={<UserView user={selectedUser} />}
             />
           </Routes>
         </div>
