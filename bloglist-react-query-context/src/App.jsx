@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 
-import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
+import BlogList from './components/BlogList'
 import blogService from './services/blogs'
 import Header from './components/Header'
 import LoginForm from './components/LoginForm'
@@ -11,8 +11,8 @@ import NotificationContext from './NotificationContext'
 import { Routes, Route, useMatch } from 'react-router-dom'
 import Togglable from './components/Togglable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import User from './components/User'
 import UserContext from './UserContext'
+import UserList from './components/UserList'
 import userService from './services/users'
 import UserView from './components/UserView'
 
@@ -186,53 +186,20 @@ const App = () => {
             <Route
               path="/"
               element={
-                <React.Fragment>
+                <>
                   <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
                     <BlogForm createBlog={handleBlogFormSubmit} />
                   </Togglable>
-                  <div>
-                    {blogs
-                      .sort((a, b) => b.likes - a.likes)
-                      .map((blog) => {
-                        return (
-                          <Blog
-                            key={blog.id}
-                            user={user}
-                            blog={blog}
-                            handleDelete={handleDelete}
-                            handleLike={handleLike}
-                          />
-                        )
-                      })}
-                  </div>
-                </React.Fragment>
+                  <BlogList
+                    blogs={blogs}
+                    user={user}
+                    handleDelete={handleDelete}
+                    handleLike={handleLike}
+                  />
+                </>
               }
             />
-            <Route
-              path="/users"
-              element={
-                <div>
-                  <h2>Users</h2>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th></th>
-                        <th style={{ textAlign: 'left', paddingLeft: '20px' }}>
-                          blogs created
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <User user={user} />
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              }
-            />
+            <Route path="/users" element={<UserList users={users} />} />
             <Route
               path="/users/:id"
               element={<UserView user={selectedUser} />}
