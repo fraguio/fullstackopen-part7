@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react'
 
 import BlogForm from './components/BlogForm'
 import BlogList from './components/BlogList'
+import BlogView from './components/BlogView'
 import blogService from './services/blogs'
 import Header from './components/Header'
 import LoginForm from './components/LoginForm'
@@ -49,9 +50,14 @@ const App = () => {
   const blogs = resultBlogs.data || []
   const users = resultUsers.data || []
 
-  const match = useMatch('/users/:id')
-  const selectedUser = match
-    ? users.find((u) => u.id === match.params.id)
+  const blogMatch = useMatch('/blogs/:id')
+  const selectedBlog = blogMatch
+    ? blogs.find((b) => b.id === blogMatch.params.id)
+    : null
+
+  const userMatch = useMatch('/users/:id')
+  const selectedUser = userMatch
+    ? users.find((u) => u.id === userMatch.params.id)
     : null
 
   const queryClient = useQueryClient()
@@ -198,6 +204,10 @@ const App = () => {
                   />
                 </>
               }
+            />
+            <Route
+              path="/blogs/:id"
+              element={<BlogView blog={selectedBlog} handleLike={handleLike} />}
             />
             <Route path="/users" element={<UserList users={users} />} />
             <Route
