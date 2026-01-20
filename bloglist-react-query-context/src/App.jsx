@@ -8,13 +8,14 @@ import Notification from './components/Notification'
 import NotificationContext from './NotificationContext'
 import Togglable from './components/Togglable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import UserContext from './UserContext'
 
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
 
   const { notificationDispatch } = useContext(NotificationContext)
+  const { user, userDispatch } = useContext(UserContext)
 
   const blogFormRef = useRef()
 
@@ -22,7 +23,10 @@ const App = () => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
-      setUser(user)
+      userDispatch({
+        type: 'LOGIN',
+        payload: user,
+      })
       blogService.setToken(user.token)
     }
   }, [])
@@ -92,7 +96,10 @@ const App = () => {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedBlogAppUser', JSON.stringify(user))
       blogService.setToken(user.token)
-      setUser(user)
+      userDispatch({
+        type: 'LOGIN',
+        payload: user,
+      })
       clearLoginForm()
     } catch (error) {
       showNotification('error', error.response.data.error)
@@ -102,7 +109,9 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogAppUser')
-    setUser(null)
+    userDispatch({
+      type: 'LOGOUT',
+    })
   }
 
   const showNotification = (type, message) => {
