@@ -54,6 +54,37 @@ const App = () => {
     createBlogMutation.mutate(newBlog)
   }
 
+  const removeMutation = useMutation({
+    mutationFn: blogService.remove,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
+
+  const handleDelete = async (blog) => {
+    const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
+    if (!ok) return
+
+    removeMutation.mutate(blog.id)
+  }
+
+  const likeMutation = useMutation({
+    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
+
+  const handleLike = async (blog) => {
+    const updatedBlog = {
+      ...blog,
+      likes: blog.likes + 1,
+      user: blog.user.id,
+    }
+
+    likeMutation.mutate({ id: blog.id, updatedBlog })
+  }
+
   const handleLogin = async (event) => {
     event.preventDefault()
 
@@ -136,7 +167,15 @@ const App = () => {
             {[...blogs]
               .sort((a, b) => b.likes - a.likes)
               .map((blog) => {
-                return <Blog key={blog.id} user={user} blog={blog} />
+                return (
+                  <Blog
+                    key={blog.id}
+                    user={user}
+                    blog={blog}
+                    handleDelete={handleDelete}
+                    handleLike={handleLike}
+                  />
+                )
               })}
           </div>
         </div>
