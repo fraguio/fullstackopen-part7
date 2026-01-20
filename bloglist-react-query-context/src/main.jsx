@@ -1,4 +1,5 @@
 import App from './App.jsx'
+import { BrowserRouter } from 'react-router-dom'
 import { NotificationContextProvider } from './NotificationContext.jsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ReactDOM from 'react-dom/client'
@@ -11,12 +12,14 @@ const queryClient = new QueryClient()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <UserContextProvider>
-        <NotificationContextProvider>
-          <App />
-        </NotificationContextProvider>
-      </UserContextProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <UserContextProvider>
+          <NotificationContextProvider>
+            <App />
+          </NotificationContextProvider>
+        </UserContextProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   </StrictMode>
 )

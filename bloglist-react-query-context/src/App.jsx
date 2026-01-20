@@ -2,13 +2,16 @@ import { useContext, useEffect, useRef, useState } from 'react'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
+import Header from './components/Header'
 import LoginForm from './components/LoginForm'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import NotificationContext from './NotificationContext'
+import { Routes, Route, Link, useMatch, useNavigate } from 'react-router-dom'
 import Togglable from './components/Togglable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import UserContext from './UserContext'
+import userService from './services/users'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -31,10 +34,15 @@ const App = () => {
     }
   }, [])
 
-  const clearLoginForm = () => {
-    setUsername('')
-    setPassword('')
-  }
+  const resultBlogs = useQuery({
+    queryKey: ['blogs'],
+    queryFn: blogService.getAll,
+  })
+
+  const resultUsers = useQuery({
+    queryKey: ['users'],
+    queryFn: userService.getAll,
+  })
 
   const queryClient = useQueryClient()
 
@@ -54,9 +62,12 @@ const App = () => {
     },
   })
 
-  const handleBlogFormSubmit = (newBlog) => {
-    createBlogMutation.mutate(newBlog)
-  }
+  const likeMutation = useMutation({
+    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
 
   const removeMutation = useMutation({
     mutationFn: blogService.remove,
@@ -65,19 +76,21 @@ const App = () => {
     },
   })
 
+  const clearLoginForm = () => {
+    setUsername('')
+    setPassword('')
+  }
+
+  const handleBlogFormSubmit = (newBlog) => {
+    createBlogMutation.mutate(newBlog)
+  }
+
   const handleDelete = async (blog) => {
     const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
     if (!ok) return
 
     removeMutation.mutate(blog.id)
   }
-
-  const likeMutation = useMutation({
-    mutationFn: ({ id, updatedBlog }) => blogService.update(id, updatedBlog),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['blogs'] })
-    },
-  })
 
   const handleLike = async (blog) => {
     const updatedBlog = {
@@ -131,16 +144,12 @@ const App = () => {
     )
   }
 
-  const result = useQuery({
-    queryKey: ['blogs'],
-    queryFn: blogService.getAll,
-  })
-
-  if (result.isLoading) {
+  if (resultBlogs.isLoading || resultUsers.isLoading) {
     return <div>loading data...</div>
   }
 
-  const blogs = result.data || []
+  const blogs = resultBlogs.data || []
+  const users = resultUsers.data || []
 
   return (
     <div>
@@ -160,33 +169,62 @@ const App = () => {
 
       {user && (
         <div>
-          <h2>blogs</h2>
-          <Notification />
-
-          <p>
-            {user.username} logged in{' '}
-            <button onClick={handleLogout}>logout</button>
-          </p>
-
-          <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
-            <BlogForm createBlog={handleBlogFormSubmit} />
-          </Togglable>
-
-          <div>
-            {[...blogs]
-              .sort((a, b) => b.likes - a.likes)
-              .map((blog) => {
-                return (
-                  <Blog
-                    key={blog.id}
-                    user={user}
-                    blog={blog}
-                    handleDelete={handleDelete}
-                    handleLike={handleLike}
-                  />
-                )
-              })}
-          </div>
+          <Header handleLogout={handleLogout} />
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <>
+                  <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
+                    <BlogForm createBlog={handleBlogFormSubmit} />
+                  </Togglable>
+                  <div>
+                    {[...blogs]
+                      .sort((a, b) => b.likes - a.likes)
+                      .map((blog) => {
+                        return (
+                          <Blog
+                            key={blog.id}
+                            user={user}
+                            blog={blog}
+                            handleDelete={handleDelete}
+                            handleLike={handleLike}
+                          />
+                        )
+                      })}
+                  </div>
+                </>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <div>
+                  <h2>Users</h2>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th style={{ textAlign: 'left', paddingLeft: '20px' }}>
+                          blogs created
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...users].map((user) => (
+                        <tr key={user.id}>
+                          <td>{user.name}</td>
+                          <td style={{ paddingLeft: '20px' }}>
+                            {user.blogs.length}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              }
+            />
+          </Routes>
         </div>
       )}
     </div>
