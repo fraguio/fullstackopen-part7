@@ -7,14 +7,14 @@ import loginService from './services/login'
 import Notification from './components/Notification'
 import NotificationContext from './NotificationContext'
 import Togglable from './components/Togglable'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-  const { notification, notificationDispatch } = useContext(NotificationContext)
+  const { notificationDispatch } = useContext(NotificationContext)
 
   const blogFormRef = useRef()
 
@@ -27,63 +27,31 @@ const App = () => {
     }
   }, [])
 
-  useEffect(() => {
-    // Define y llama a una función asíncrona dentro del callback.
-    // useEffect no puede ser async
-    const fetchBlogs = async () => {
-      try {
-        // Uso de await dentro de la función asíncrona
-        const blogs = await blogService.getAll()
-        setBlogs(blogs)
-      } catch (error) {
-        showNotification('error', `failed to fetch blogs ${error}`)
-      }
-    }
-
-    if (user) {
-      fetchBlogs()
-    }
-  }, [user])
-
   const clearLoginForm = () => {
     setUsername('')
     setPassword('')
   }
 
-  const handleBlogFormSubmit = async (newBlog) => {
-    try {
-      const createdBlog = await blogService.create(newBlog)
-      setBlogs(blogs.concat(createdBlog))
+  const queryClient = useQueryClient()
 
+  const createBlogMutation = useMutation({
+    mutationFn: blogService.create,
+    onSuccess: (createdBlog) => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
       blogFormRef.current.toggleVisibility()
 
       showNotification(
         'success',
         `a new blog "${createdBlog.title}" by ${createdBlog.author} added`
       )
-    } catch (error) {
+    },
+    onError: (error) => {
       showNotification('error', error.response.data.error)
-    }
-  }
+    },
+  })
 
-  const handleDelete = async (blog) => {
-    const ok = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
-    if (!ok) return
-
-    await blogService.remove(blog.id)
-    setBlogs((blogs) => blogs.filter((b) => b.id !== blog.id))
-  }
-
-  const handleLike = async (blog) => {
-    const updatedBlog = {
-      ...blog,
-      likes: blog.likes + 1,
-      user: blog.user.id,
-    }
-
-    const returnedBlog = await blogService.update(blog.id, updatedBlog)
-
-    setBlogs((blogs) => blogs.map((b) => (b.id === blog.id ? returnedBlog : b)))
+  const handleBlogFormSubmit = (newBlog) => {
+    createBlogMutation.mutate(newBlog)
   }
 
   const handleLogin = async (event) => {
@@ -123,6 +91,17 @@ const App = () => {
     )
   }
 
+  const result = useQuery({
+    queryKey: ['blogs'],
+    queryFn: blogService.getAll,
+  })
+
+  if (result.isLoading) {
+    return <div>loading data...</div>
+  }
+
+  const blogs = result.data || []
+
   return (
     <div>
       {!user && (
@@ -157,15 +136,7 @@ const App = () => {
             {[...blogs]
               .sort((a, b) => b.likes - a.likes)
               .map((blog) => {
-                return (
-                  <Blog
-                    key={blog.id}
-                    user={user}
-                    blog={blog}
-                    handleDelete={handleDelete}
-                    handleLike={handleLike}
-                  />
-                )
+                return <Blog key={blog.id} user={user} blog={blog} />
               })}
           </div>
         </div>
