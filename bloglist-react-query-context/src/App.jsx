@@ -4,9 +4,9 @@ import BlogForm from './components/BlogForm'
 import BlogList from './components/BlogList'
 import BlogView from './components/BlogView'
 import blogService from './services/blogs'
-import Header from './components/Header'
 import LoginForm from './components/LoginForm'
 import loginService from './services/login'
+import Menu from './components/Menu'
 import Notification from './components/Notification'
 import NotificationContext from './NotificationContext'
 import { Routes, Route, useMatch } from 'react-router-dom'
@@ -187,7 +187,9 @@ const App = () => {
 
       {user && (
         <div>
-          <Header handleLogout={handleLogout} />
+          <Menu handleLogout={handleLogout} />
+          <h2>blog app</h2>
+          <Notification />
           <Routes>
             <Route
               path="/"
