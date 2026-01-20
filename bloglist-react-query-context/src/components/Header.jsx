@@ -1,5 +1,6 @@
 import Notification from './Notification'
 import UserContext from '../UserContext'
+import { useContext } from 'react'
 
 const Header = ({ handleLogout }) => {
   const { user } = useContext(UserContext)
