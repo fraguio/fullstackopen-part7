@@ -62,6 +62,20 @@ const App = () => {
 
   const queryClient = useQueryClient()
 
+  const addBlogCommentMutation = useMutation({
+    mutationFn: ({ id, comment }) => blogService.addComment(id, comment),
+    onSuccess: (updatedBlog, { id, comment }) => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+      showNotification(
+        'success',
+        `the comment "${comment}" was added to the blog "${updatedBlog.title}"`
+      )
+    },
+    onError: (error) => {
+      showNotification('error', error.response.data.error)
+    },
+  })
+
   const createBlogMutation = useMutation({
     mutationFn: blogService.create,
     onSuccess: (createdBlog) => {
@@ -99,6 +113,10 @@ const App = () => {
 
   const handleBlogFormSubmit = (newBlog) => {
     createBlogMutation.mutate(newBlog)
+  }
+
+  const handleCommentFormSubmit = (id, comment) => {
+    addBlogCommentMutation.mutate({ id, comment })
   }
 
   const handleDelete = async (blog) => {
@@ -209,7 +227,13 @@ const App = () => {
             />
             <Route
               path="/blogs/:id"
-              element={<BlogView blog={selectedBlog} handleLike={handleLike} />}
+              element={
+                <BlogView
+                  blog={selectedBlog}
+                  handleCommentFormSubmit={handleCommentFormSubmit}
+                  handleLike={handleLike}
+                />
+              }
             />
             <Route path="/users" element={<UserList users={users} />} />
             <Route

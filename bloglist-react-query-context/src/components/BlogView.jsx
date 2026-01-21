@@ -1,4 +1,6 @@
-const BlogView = ({ blog, handleLike }) => {
+import CommentForm from './CommentForm'
+
+const BlogView = ({ blog, handleCommentFormSubmit, handleLike }) => {
   if (!blog) {
     return null
   }
@@ -17,6 +19,10 @@ const BlogView = ({ blog, handleLike }) => {
       </div>
       <div>{`added by ${blog.user?.name}`}</div>
       <h2>comments</h2>
+      <CommentForm
+        blog={blog}
+        handleCommentFormSubmit={handleCommentFormSubmit}
+      />
       <ul>
         {blog.comments.map((c, index) => (
           <li key={index}>{c}</li>
