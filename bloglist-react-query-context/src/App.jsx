@@ -17,6 +17,8 @@ import UserList from './components/UserList'
 import userService from './services/users'
 import UserView from './components/UserView'
 
+import { Container, Typography } from '@mui/material'
+
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -188,62 +190,70 @@ const App = () => {
   }
 
   return (
-    <div>
-      {!user && (
-        <div>
-          <h2>log in to application</h2>
-          <Notification />
-          <LoginForm
-            handleLogin={handleLogin}
-            username={username}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            password={password}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-          />
-        </div>
-      )}
+    <Container sx={{ marginTop: 4 }}>
+      <div>
+        {!user && (
+          <div>
+            <Notification />
+            <LoginForm
+              handleLogin={handleLogin}
+              username={username}
+              handleUsernameChange={({ target }) => setUsername(target.value)}
+              password={password}
+              handlePasswordChange={({ target }) => setPassword(target.value)}
+            />
+          </div>
+        )}
 
-      {user && (
-        <div>
-          <Menu handleLogout={handleLogout} />
-          <h2>blog app</h2>
-          <Notification />
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
-                    <BlogForm createBlog={handleBlogFormSubmit} />
-                  </Togglable>
-                  <BlogList
-                    blogs={blogs}
-                    user={user}
-                    handleDelete={handleDelete}
+        {user && (
+          <div>
+            <Menu handleLogout={handleLogout} />
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              sx={{ fontWeight: 'bold', marginTop: 2, marginBottom: 2 }}
+            >
+              blog app
+            </Typography>
+            <Notification />
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <>
+                    <Togglable buttonLabel="Create new blog" ref={blogFormRef}>
+                      <BlogForm createBlog={handleBlogFormSubmit} />
+                    </Togglable>
+                    <BlogList
+                      blogs={blogs}
+                      user={user}
+                      handleDelete={handleDelete}
+                      handleLike={handleLike}
+                    />
+                  </>
+                }
+              />
+              <Route
+                path="/blogs/:id"
+                element={
+                  <BlogView
+                    blog={selectedBlog}
+                    handleCommentFormSubmit={handleCommentFormSubmit}
                     handleLike={handleLike}
                   />
-                </>
-              }
-            />
-            <Route
-              path="/blogs/:id"
-              element={
-                <BlogView
-                  blog={selectedBlog}
-                  handleCommentFormSubmit={handleCommentFormSubmit}
-                  handleLike={handleLike}
-                />
-              }
-            />
-            <Route path="/users" element={<UserList users={users} />} />
-            <Route
-              path="/users/:id"
-              element={<UserView user={selectedUser} />}
-            />
-          </Routes>
-        </div>
-      )}
-    </div>
+                }
+              />
+              <Route path="/users" element={<UserList users={users} />} />
+              <Route
+                path="/users/:id"
+                element={<UserView user={selectedUser} />}
+              />
+            </Routes>
+          </div>
+        )}
+      </div>
+    </Container>
   )
 }
 

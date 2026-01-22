@@ -1,26 +1,39 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+} from '@mui/material'
 import User from './User'
 
 const UserList = ({ users }) => {
   return (
     <div>
-      <h2>Users</h2>
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th style={{ textAlign: 'left', paddingLeft: '20px' }}>
-              blogs created
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <User user={user} />
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Typography variant="h4" sx={{ my: 3 }}>
+        Users
+      </Typography>
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              <TableCell sx={{ fontWeight: 'bold' }}>User Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }} align="right">
+                Blogs Created
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {users.map((user) => (
+              <User key={user.id} user={user} />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   )
 }

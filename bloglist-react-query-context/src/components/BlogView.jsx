@@ -1,34 +1,83 @@
+import {
+  Typography,
+  Button,
+  Link,
+  Box,
+  Card,
+  CardContent,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+} from '@mui/material'
+import ThumbUpIcon from '@mui/icons-material/ThumbUp'
+import CommentIcon from '@mui/icons-material/Comment'
 import CommentForm from './CommentForm'
 
 const BlogView = ({ blog, handleCommentFormSubmit, handleLike }) => {
-  if (!blog) {
-    return null
-  }
+  if (!blog) return null
 
   return (
-    <>
-      <h2>{blog.title}</h2>
-      <div>
-        <a href={blog.url} target="_blank" rel="noopener noreferrer">
-          {blog.url}
-        </a>
-      </div>
-      <div>
-        likes <span data-testid="likes-count">{blog.likes}</span>{' '}
-        <button onClick={() => handleLike(blog)}>like</button>
-      </div>
-      <div>{`added by ${blog.user?.name}`}</div>
-      <h2>comments</h2>
+    <Box sx={{ mt: 4 }}>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
+        <CardContent>
+          <Typography variant="h4" gutterBottom>
+            {blog.title}
+          </Typography>
+
+          <Link
+            href={blog.url}
+            target="_blank"
+            rel="noopener"
+            sx={{ display: 'block', mb: 2 }}
+          >
+            {blog.url}
+          </Link>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Typography variant="body1">
+              likes <b>{blog.likes}</b>
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<ThumbUpIcon />}
+              onClick={() => handleLike(blog)}
+            >
+              like
+            </Button>
+          </Box>
+
+          <Typography variant="body2" color="text.secondary">
+            added by <b>{blog.user?.name}</b>
+          </Typography>
+        </CardContent>
+      </Card>
+
+      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
+        comments
+      </Typography>
+
       <CommentForm
         blog={blog}
         handleCommentFormSubmit={handleCommentFormSubmit}
       />
-      <ul>
+
+      <List sx={{ mt: 2 }}>
         {blog.comments.map((c, index) => (
-          <li key={index}>{c}</li>
+          <div key={index}>
+            <ListItem>
+              <ListItemIcon>
+                <CommentIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary={c} />
+            </ListItem>
+            <Divider variant="inset" component="li" />
+          </div>
         ))}
-      </ul>
-    </>
+      </List>
+    </Box>
   )
 }
 
