@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
 import { TableCell, TableRow } from '@mui/material'
+
+import { AppLink } from '../styles/StyledComponents'
 
 const User = ({ user }) => {
   if (!user) return null
@@ -7,12 +8,7 @@ const User = ({ user }) => {
   return (
     <TableRow hover>
       <TableCell>
-        <Link
-          to={`/users/${user.id}`}
-          style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 500 }}
-        >
-          {user.name}
-        </Link>
+        <AppLink to={`/users/${user.id}`}>{user.name}</AppLink>
       </TableCell>
       <TableCell align="right">{user.blogs.length}</TableCell>
     </TableRow>

@@ -1,7 +1,9 @@
 import { useContext } from 'react'
 import UserContext from '../UserContext'
-import { Button, Typography, Box, Chip } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
+
+import { IconTextWrapper } from '../styles/StyledComponents'
 
 const AuthHeader = ({ handleLogout }) => {
   const { user } = useContext(UserContext)
@@ -9,25 +11,27 @@ const AuthHeader = ({ handleLogout }) => {
   if (!user) return null
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-        {user.name || user.username} logged In
-      </Typography>
+    <>
+      <IconTextWrapper>
+        <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+          {user.name || user.username} logged In
+        </Typography>
 
-      <Button
-        variant="contained"
-        color="secondary"
-        size="small"
-        onClick={handleLogout}
-        startIcon={<LogoutIcon />}
-        sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.2)',
-          '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
-        }}
-      >
-        logout
-      </Button>
-    </Box>
+        <Button
+          variant="contained"
+          color="secondary"
+          size="small"
+          onClick={handleLogout}
+          startIcon={<LogoutIcon />}
+          sx={{
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
+          }}
+        >
+          logout
+        </Button>
+      </IconTextWrapper>
+    </>
   )
 }
 

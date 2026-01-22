@@ -15,6 +15,8 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp'
 import CommentIcon from '@mui/icons-material/Comment'
 import CommentForm from './CommentForm'
 
+import { IconTextWrapper } from '../styles/StyledComponents'
+
 const BlogView = ({ blog, handleCommentFormSubmit, handleLike }) => {
   if (!blog) return null
 
@@ -35,7 +37,7 @@ const BlogView = ({ blog, handleCommentFormSubmit, handleLike }) => {
             {blog.url}
           </Link>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <IconTextWrapper>
             <Typography variant="body1">
               likes <b>{blog.likes}</b>
             </Typography>
@@ -47,7 +49,7 @@ const BlogView = ({ blog, handleCommentFormSubmit, handleLike }) => {
             >
               like
             </Button>
-          </Box>
+          </IconTextWrapper>
 
           <Typography variant="body2" color="text.secondary">
             added by <b>{blog.user?.name}</b>

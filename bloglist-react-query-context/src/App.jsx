@@ -17,7 +17,8 @@ import UserList from './components/UserList'
 import userService from './services/users'
 import UserView from './components/UserView'
 
-import { Container, Typography } from '@mui/material'
+import { Container } from '@mui/material'
+import { PageTitle } from './styles/StyledComponents'
 
 const App = () => {
   const [username, setUsername] = useState('')
@@ -208,14 +209,7 @@ const App = () => {
         {user && (
           <div>
             <Menu handleLogout={handleLogout} />
-            <Typography
-              variant="h4"
-              component="h1"
-              gutterBottom
-              sx={{ fontWeight: 'bold', marginTop: 2, marginBottom: 2 }}
-            >
-              blog app
-            </Typography>
+            <PageTitle>blog app</PageTitle>
             <Notification />
             <Routes>
               <Route
